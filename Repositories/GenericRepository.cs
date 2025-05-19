@@ -10,6 +10,7 @@ namespace App.Repositories
 {
     public class GenericRepository<T>(AppDbContext context) : IGenericRepository<T> where T : class
     {
+        protected AppDbContext Context = context; // miras aldımız sınıflarda contexti kullanabilmek için protected yaptık.
         private readonly DbSet<T> _dbSet = context.Set<T>();
         public IQueryable<T> GetAll() => _dbSet.AsQueryable().AsNoTracking(); //queryable döndürdük çünkü veritabanına erişim yapmadan önce filtreleme yapabilmek için.
         public IQueryable<T> Where(Expression<Func<T, bool>> predicate) => _dbSet.Where(predicate).AsNoTracking(); //şartlı sorgulama yapabilmek için. IQueryable döndürdük çünkü veritabanına erişim yapmadan önce filtreleme yapabilmek için.
