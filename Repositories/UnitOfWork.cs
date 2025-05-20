@@ -8,7 +8,7 @@ namespace App.Repositories
 {
     public class UnitOfWork(AppDbContext context) : IUnitOfWork
     {
-        public Task<int> SaveChangeAsync() => context.SaveChangesAsync();
+        public Task<int> SaveChangesAsync() => context.SaveChangesAsync();
         //{
         //    return context.SaveChangesAsync();
         //}
