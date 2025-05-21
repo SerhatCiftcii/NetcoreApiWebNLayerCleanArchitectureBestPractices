@@ -1,5 +1,6 @@
 ﻿using App.Repositories;
 using App.Repositories.Products;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace App.Services.Products
 {
-    public class ProductService(IProductRepository productRepository, IUnitOfWork unitOfWork) : IProductService
+    public class ProductService(IProductRepository productRepository, IUnitOfWork unitOfWork): IProductService
     {
         public async Task<ServiceResult<List<ProductDto>>> GetTopPriceProductAsync(int count)
         {
@@ -21,7 +22,16 @@ namespace App.Services.Products
                 Data = productsAsDto,
             };
         }
-        public async Task<ServiceResult<ProductDto>> GetByIdAsync(int id)
+
+        public async Task<ServiceResult<List<ProductDto>>> GetAllListAsync()
+        {
+            var products = await productRepository.GetAll().ToListAsync();
+            var productsAsDto = products.Select(x => new ProductDto(x.Id, x.Name, x.Price, x.Stock)).ToList();
+            return ServiceResult<List<ProductDto>>.Success(productsAsDto);
+        }
+
+
+        public async Task<ServiceResult<ProductDto?>> GetByIdAsync(int id)
         {
             var product = await productRepository.GetByIdAsync(id);
             if (product is null)
@@ -31,7 +41,7 @@ namespace App.Services.Products
             var productAsDto = new ProductDto(product!.Id, product.Name, product.Price, product.Stock);
             return ServiceResult<ProductDto>.Success(productAsDto!);
         }
-        public async Task<ServiceResult<CreateProductResponse>> CreateProductAsync(CreateProductRequest request)
+        public async Task<ServiceResult<CreateProductResponse>> CreateAsync(CreateProductRequest request)
         {
             var product = new Product()
             {
@@ -43,13 +53,10 @@ namespace App.Services.Products
             await unitOfWork.SaveChangesAsync();
             return ServiceResult<CreateProductResponse>.Success(new CreateProductResponse(product.Id));
         }
-        public async Task<ServiceResult> UpdateProductAsync(int id,CreateProductRequest request)
+        public async Task<ServiceResult> UpdateAsync(int id,UpdateProductRequest request)
         {
             //fast fail önce olumsuzları kontrol et kural olarak böyle daha iyi.
             // Guard Clauses(gard cumlecikleri) kullanıyoruz. else yazmadan kod yaz if olsun else kötü. static test için kötü. puanı düşürür.
-
-
-
             var product = await productRepository.GetByIdAsync(id);
             if (product is null)
             {
@@ -64,7 +71,7 @@ namespace App.Services.Products
 
             return ServiceResult.Success();
         }
-        public async Task<ServiceResult> DeleteProductAsync(int id)
+        public async Task<ServiceResult> DeleteAsync(int id)
         {
             var product = await productRepository.GetByIdAsync(id);
             if (product is null)
